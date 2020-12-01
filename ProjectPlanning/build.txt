@@ -1,0 +1,40 @@
+Step 1: Pain Point
+------------------
+1. The point of this project is to complete a coding challenge for an internship position. 
+They are asking for a google calendar like app where you can add edit or delete events. 
+Required - 
+display weekly view, start with current week
+highlight current date (today)
+allow navigating to previous and next week
+add, edit, delete events
+To keep task simple -  
+events don't overlap, can reject event if it overlaps with existing one
+events don't need to expand through multiple days
+events may have fixed durations (1 hr slots)
+Bonus - 
+good UI/UX
+presists the data (doesn't get lost on reload)
+has a backend (uses APIs to load and save events)
+*additional credits if backend is in cloud infrastructure (AWS or Google Cloud)
+
+Step 2: Plan the features
+-------------------------
+1. SPA
+- calendar is main view
+- add or edit event dynamically
+- new get request when getting previous or next week
+- can create events with fixed slots only
+
+2. possible modifications
+- confirm deletion 
+- have multiple views (day or week)
+- add time zone
+
+Step 3: Build Sub-Components
+----------------------------
+- Each event has:
+    title
+    date
+    time
+    description
+    location
