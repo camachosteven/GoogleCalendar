@@ -1,7 +1,7 @@
 const router = require('express').Router();
+const mainController = require('../MVC/Controllers/mainController');
 
-router.get('/', (req, res) => {
-    res.render('index.ejs');
-});
+router.get('/', mainController.getCurrentCalendar);
+router.post('/add-event/', mainController.addEvent);
 
 module.exports = router;
