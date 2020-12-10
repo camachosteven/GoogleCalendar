@@ -7,9 +7,14 @@ module.exports.addEvent = (when, from, to, title, location) => {
     db.execute(query);
 }
 
-module.exports.getAllEvents = async callback => {
+module.exports.getAllEvents = async (start, end, callback) => {
     try {
-        const [rows, fields] = await db.execute('SELECT * FROM events;');
+        const query = `
+            SELECT * 
+            FROM events
+            WHERE \`when\` BETWEEN '${start}' and '${end}';
+        `;
+        const [rows, fields] = await db.execute(query);
         callback(rows);
     } catch (error) {
         console.log(error);

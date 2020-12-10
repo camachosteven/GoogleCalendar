@@ -1,36 +1,64 @@
-const variables = require('../../util/variables');
+const { DAYS, DAYS_HEADER, DAYS_IN_WEEK, MONTHS_HEADER } = require('../../util/variables');
+const { getHeader } = require('../../util/mainController');
 const mainModel = require('../Models/mainModel');
+const { get } = require('../../routes/main');
 
+/** get this week's calendar and events
+ * - get today's date
+ * - get year, date, month, year
+ * - for loop is create the entire week 
+ *      for each day, 
+ *          > create date object, with day name, header, and date
+ *          > for today, set current to true
+ *          > push into currentWeek array
+ *          > check to see if that day's month is different from today's month
+ *              - get that day's month
+ *              - if that day is after today, then add that month before today's month
+ *              - if that day is before today, then add that month after today's month
+ * - if block after the for loop is used to determine the year(s) in header
+ *      if the header has multiple months, add the current year and the next year
+ *      if the header has a single month, add the current year
+ */
 module.exports.getCurrentCalendar = (req, res) => {
     const today = new Date(Date.now());
     const DOW = today.getDay();
     const date = today.getDate();
     const month = today.getMonth();
-    const year = today.getFullYear();
+    let year = today.getFullYear();
+    let nextYear;
     const currentWeek = [];
-    let dateHeader = `${variables.MONTHS_HEADER[month]}`;
-    let singleMonth = true;
-    for (let i = 0; i < variables.DAYS_IN_WEEK; i++) {
+    let dateHeader = `${MONTHS_HEADER[month]}`;
+    let startDay, endDay;
+    for (let i = 0; i < DAYS_IN_WEEK; i++) {
         const diff = DOW - i;
         const next = new Date(year, month, date - diff);
+        if (i === 0) {
+            startDay = `${next.getFullYear()}-${next.getMonth() + 1}-${next.getDate()}`;
+            if (month !== next.getMonth()) [dateHeader, nextYear] = getHeader(diff, next, dateHeader, year);
+        }
+        else if (i === DAYS_IN_WEEK - 1) {
+            endDay = `${next.getFullYear()}-${next.getMonth() + 1}-${next.getDate()}`;
+            if (month !== next.getMonth()) [dateHeader, nextYear] = getHeader(diff, next, dateHeader, year);
+        }
         const dateObject = {
-            day: variables.DAYS[i],
-            header: variables.DAYS_HEADER[i],
-            date: next.getDate()
+            day: DAYS[i],
+            header: DAYS_HEADER[i],
+            date: next.getDate(),
+            events: []
         };
         if (next.getDate() === date) dateObject.current = true;
+        
         currentWeek.push(dateObject);
-        if (month !== next.getMonth() && singleMonth) {
-            const nextMonth = variables.MONTHS_HEADER[next.getMonth()];
-            if (diff < 0) dateHeader += ` - ${nextMonth}`; 
-            else dateHeader = `${nextMonth} - ${dateHeader}`;
-            singleMonth = false;
-        }
     }
     if (dateHeader.includes('Jan')) {
         dateHeader = dateHeader.split('-');
-        dateHeader[0] += year + ' ';
-        dateHeader[1] += ' ' + (year + 1);
+        if (year < nextYear) {
+            dateHeader[0] += year + ' ';
+            dateHeader[1] += ' ' + nextYear;
+        } else {
+            dateHeader[0] += nextYear + ' ';
+            dateHeader[1] += ' ' + year;
+        }
         dateHeader = dateHeader.join('-');
     } else {
         dateHeader += ` ${year}`;
@@ -39,10 +67,10 @@ module.exports.getCurrentCalendar = (req, res) => {
         currentWeek,
         dateHeader
     };
-    mainModel.getAllEvents(results => {
-        console.log(results);
+    mainModel.getAllEvents(startDay, endDay, results => {
+        context['data'] = results;
+        res.render('index.ejs', context);
     });
-    res.render('index.ejs', context);
 }
 
 module.exports.addEvent = (req, res) => {
