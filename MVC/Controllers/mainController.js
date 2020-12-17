@@ -1,7 +1,6 @@
-const { DAYS, DAYS_HEADER, DAYS_IN_WEEK, MONTHS_HEADER } = require('../../util/variables');
+const { DAYS, DAYS_HEADER, DAYS_IN_WEEK, MONTHS_HEADER, FULL_MONTHS } = require('../../util/variables');
 const { getHeader } = require('../../util/mainController');
 const mainModel = require('../Models/mainModel');
-const { get } = require('../../routes/main');
 
 /** get this week's calendar and events
  * - get today's date
@@ -20,6 +19,7 @@ const { get } = require('../../routes/main');
  *      if the header has a single month, add the current year
  */
 module.exports.getCurrentCalendar = (req, res) => {
+    const context = {};
     const today = new Date(Date.now());
     const DOW = today.getDay();
     const date = today.getDate();
@@ -63,22 +63,38 @@ module.exports.getCurrentCalendar = (req, res) => {
     } else {
         dateHeader += ` ${year}`;
     }
-    const context = {
-        currentWeek,
-        dateHeader
-    };
     mainModel.getAllEvents(startDay, endDay, results => {
-        context['data'] = results;
+        currentWeek.forEach(day => {
+            let more = true;
+            do {
+                if (results[0] && results[0].when.getDate() === day.date) day.events.push(results.shift());
+                else more = false; 
+            } while (more);
+        });
+        context['currentWeek'] = currentWeek;
+        context['dateHeader'] = dateHeader;
         res.render('index.ejs', context);
     });
 }
-
+// '7:00pm - 8:30pm'
 module.exports.addEvent = (req, res) => {
-    const when = req.body.date;
-    const from = req.body.time_of_day_from + ":00";
-    const to = req.body.time_of_day_to + ":00";
     const title = req.body.title;
-    const location = req.body.location;
-    mainModel.addEvent(when, from, to, title, location);
-    res.redirect('/');
+    const location = req.body.location; 
+    const date = req.body.when.split(' ');
+    let when = FULL_MONTHS[date[0]];
+    when += `-${parseInt(date[1])}`;
+    when = `${parseInt(date[2])}-${when}`;
+    const times = req.body.time.split('-');
+    let startHour = parseInt(times[0].split(':')[0]);
+    let endHour = parseInt(times[1].split(':')[0]);
+    const startMeridian = times[0].split('').splice(4, 2).join('');
+    const endMeridian = times[1].trim().split('').splice(4, 2).join('');
+    if (startHour === 12 && startMeridian === 'am') startHour = 0;
+    else if (startHour > 12) startHour += 12;
+    if (endHour === 12 && endHour === 'am') endHour = 0;
+    else if (endHour > 12) endHour += 12;
+    let from = startHour < 10 ? `0${startHour}:00:00`: `${startHour}:00:00`;
+    let to = endHour < 10 ? `0${endHour}:00:00`: `${endHour}:00:00`;
+    
+    mainModel.addEvent(when, from, to, title, location, () => res.redirect('/'));
 };

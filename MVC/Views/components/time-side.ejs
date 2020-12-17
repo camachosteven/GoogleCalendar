@@ -1,0 +1,18 @@
+<div class="calendar__time">
+    <% for (let i = 0; i < 2; i++) { %>
+        <% if (i === 0) { %>
+        <% var meridian = 'am'; %>
+        <% } else { %>
+        <% var meridian = 'pm'; %>
+        <% } %>
+
+        <% for (let j = 0; j < 12; j++) { %>
+            <% if (j === 0) { %>
+            <% var hour = 12 + meridian; %>
+            <% } else { %>
+            <% var hour = j + meridian; %>
+            <% } %>
+            <div class="calendar__time--hour" id="<%= hour %>"><%= hour %></div>
+        <% } %>
+    <% } %>
+</div>

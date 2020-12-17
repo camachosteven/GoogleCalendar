@@ -1,0 +1,46 @@
+<% currentWeek.forEach(current => { %>
+    <div class="calendar__day" id="<%= current.day %>">
+        <% for (let i = 0; i < 24; i++) { %>
+            <% if (i < 12) { %> 
+            <% var meridian = 'am'; %>
+            <% } else { %>
+            <% var meridian = 'pm'; %>
+            <% } %>
+
+            <% if (i === 0) { %>
+            <% var hour = 12; %>
+            <% } else if (i > 12) { %>
+            <% var hour = i - 12; %>
+            <% } else { %>
+            <% var hour = i; %>
+            <% } %>
+
+            <% if (current.events.length !== 0) { %>
+                <% let from = parseInt(current.events[0].from.split(':')[0]); %>
+                <% let to = hour + 1; %>
+                <% if (from === i) { %>
+                    <% const event = current.events.shift(); %>
+                    <% from = hour + meridian; %>
+                    <% if (meridian === 'pm' && to === 12) { %>
+                        <% to += 'am'; %>
+                    <% } else { %>
+                        <% to += 'pm'; %>
+                    <% } %>
+                    <div class="calendar__event" id="<%= from %>">
+                        <div class="calendar__event--contains">
+                            <p class="calendar__event--content"><%= event.title %></p>
+                            <p class="calendar__event--content"><%= from %> - <%= to %></p>
+                            <p class="calendar__event--content"><%= event.location %></p>
+                        </div>
+                    </div>
+                <% } else { %>
+                    <% hour += meridian; %>
+                    <div class="calendar__event" id="<%= hour %>"></div>
+                <% } %>
+            <% } else { %>
+                <% hour += meridian; %>
+                <div class="calendar__event" id="<%= hour %>"></div>
+            <% } %>
+        <% } %>
+    </div>
+<% }); %>

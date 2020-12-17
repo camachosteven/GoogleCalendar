@@ -1,9 +1,7 @@
 calendarDays.forEach((current, element) => {
     current.addEventListener('click', event => {
         const clickedForm = event.target.closest('.add__event--form');
-        if (clickedForm) {
-            
-        } else {
+        if (!clickedForm) {
             const oldForm = document.querySelector('.add__event--form');
             if (oldForm) oldForm.parentNode.removeChild(oldForm);
             const currentDay = calendarHeaders.find(ele => ele.id === current.id);
@@ -47,17 +45,20 @@ calendarDays.forEach((current, element) => {
             endingHour = endingHour === 24 ? "00" : endingHour;
             const form = document.createElement('form');
             const formContent = `
-                <label class="add__event--label" for="date">Date:</label>
-                <input type="date" name="date" value="${year}-${month}-${currentDate}">
-                <label class="add__event--label" for="time_of_day_from">From:</label>
-                <input class="add__event--time" type="time" name="time_of_day_from" value="${beginningHour}:00">
-                <label class="add__event--label" for="time_of_day_to">To:</label>
-                <input class="add__event--time" type="time" name="time_of_day_to" value="${endingHour}:00">
-                <label class="add__event--label" for="title">Title:</label>
-                <input class="add__event--title" type="text" name="title">
-                <label class="add__event--label" for="location">Location:</label>
-                <input class="add__event--location" type="text" name="location">
-                <button type="submit">Add Event</button>
+                <input name="title" class="add__event--input add__event--title" type="text" placeholder="Event Title">
+                <div>
+                    <img src="img/calendar.svg" width="16px" height="16px">
+                    <input name="when" class="add__event--input add__event--date" type="text" value="December 16, 2020">
+                </div>
+                <div>
+                    <img src="img/clock.svg" width="16px" height="16px">
+                    <input name="time" class="add__event--input add__event--time" type="text" placeholder="Ex: 7:00pm - 8:00pm">
+                </div>
+                <div>
+                    <img src="img/location.png" width="16px" height="16px">
+                    <input name="location" class="add__event--input add__event--location" type="text" placeholder="Miami, FL">
+                </div>             
+                <button class="add__event--submit" type="submit">Add Event</button>
             `;
             form.action = '/add-event/';
             form.method = 'POST';

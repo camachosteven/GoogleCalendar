@@ -7,7 +7,7 @@
     width: 85%;
     display: grid;
     grid-template-rows: 75px auto;
-    grid-template-columns: 50px repeat(7, auto);
+    grid-template-columns: 50px repeat(7, 1fr);
     max-height: 400px;
     overflow-y: scroll;
 }
@@ -84,30 +84,125 @@
     border-top: 0.5px solid gray;
 }
 
+.calendar__event--contains {
+    background-color: #0085FF;
+    color: white;
+}
+
+.calendar__event div {
+    height: 100%;
+    border: 1.25px solid white;
+    border-radius: 10px;
+    transition: border 0.2s, color 0.2s, background-color 0.2s;
+}
+
+.calendar__event div:hover {
+    color: #0085FF;
+    background-color: white;
+    border: 1.25px solid #0085FF;
+}   
+
+.calendar__event .calendar__event--content:first-of-type {
+    font-weight: bold;
+
+}
+
+.calendar__event--content {
+    margin: 10px 0;
+    text-align: center;
+}
+
+.calendar__event--content:last-of-type {
+    font-style: italic;
+}
+
 
 .calendar__day#Sunday,
-.calendar__header--day#Sunday {grid-column: 2 3;}
+.calendar__header--day#Sunday {grid-column: 2 / 3;}
 .calendar__day#Monday,
-.calendar__header--day#Monday {grid-column: 3 4;}
+.calendar__header--day#Monday {grid-column: 3 / 4;}
 .calendar__day#Tuesday,
-.calendar__header--day#Tuesday {grid-column: 4 5;}
+.calendar__header--day#Tuesday {grid-column: 4 / 5;}
 .calendar__day#Wednesday,
-.calendar__header--day#Wednesday {grid-column: 5 6;}
+.calendar__header--day#Wednesday {grid-column: 5 / 6;}
 .calendar__day#Thursday,
-.calendar__header--day#Thursday {grid-column: 6 7;}
+.calendar__header--day#Thursday {grid-column: 6 / 7;}
 .calendar__day#Friday,
-.calendar__header--day#Friday {grid-column: 7 8;}
+.calendar__header--day#Friday {grid-column: 7 / 8;}
 .calendar__day#Saturday,
-.calendar__header--day#Saturday {grid-column: 8 -1;}
+.calendar__header--day#Saturday {grid-column: 8 / -1;}
 
 .add__event--form {
     position: absolute;
     z-index: 100;
-    background-color: aqua;
-    height: 300px;
-    width: 120px;
+    background-color: #C4C4C4;
+    height: 250px;
+    width: 300px;
 }
 
-.add__event--form * {
+.add__event--form > * {
+    margin: 0 auto;
     width: 80%;
+}
+
+.add__event--form > * {
+    margin-top: 1rem;
+    margin-bottom: 1rem;
+}
+
+.add__event--input {
+    background-color: inherit;
+    border: none;
+    transition: background-color 0.2s;
+}
+
+.add__event--input:hover {
+    background-color: #aaaaaa;
+}
+
+.add__event--input:focus {
+    outline: none;
+}
+
+.add__event--title {
+    height: 2rem;
+    display: block;
+    border-bottom: 2px solid black;
+    font-weight: bold;
+    font-size: 18px;
+    padding: 0.4rem 0.25rem;
+}
+
+.add__event--form > div {
+    position: relative;
+    display: flex;
+    align-items: center;
+}
+
+.add__event--form img {
+    position: relative;
+    left: 0px;
+    display: block;
+}
+
+.add__event--form > div > input {
+    margin-left: 1rem;
+}
+
+.add__event--form > div > input {
+    font-size: 14px;
+}
+
+.add__event--date,
+.add__event--time,
+.add__event--location {
+    padding: 0.5rem 0.25rem;
+}
+
+.add__event--location {
+    font-style: italic;
+}
+
+.add__event--submit {
+    display: block;
 }
