@@ -1,3 +1,4 @@
+const { body,validationResult } = require('express-validator');
 const { DAYS, DAYS_HEADER, DAYS_IN_WEEK, MONTHS_HEADER, FULL_MONTHS } = require('../../util/variables');
 const { getHeader } = require('../../util/mainController');
 const mainModel = require('../Models/mainModel');
@@ -77,24 +78,94 @@ module.exports.getCurrentCalendar = (req, res) => {
     });
 }
 // '7:00pm - 8:30pm'
-module.exports.addEvent = (req, res) => {
+module.exports.addEvent = async (req, res) => {
+    await body('when').trim().custom(value => {
+        const date = value.split(' ');
+        const month = FULL_MONTHS[date[0]];
+        const day = parseInt(date[1]);
+        const year = parseInt(date[2]);
+        if (!month) return new Error('Month is not valid. Please enter entire month capitalized (December).');
+        if (!year) return new Error('Year is not valid. Enter a valid year.');
+        if (!day && day <= new Date(year, month, 0).getDate()) return new Error('Day is not valid. Please enter a date within month of event.');
+        return true;
+    }).bail().customSanitizer(value => {
+        const date = value.split(' ');
+        return `${parseInt(date[2])}-${FULL_MONTHS[date[0]]}-${parseInt(date[1])}`;
+    }).run(req);
+
+    var errors = validationResult(req);
+    const array = errors.array();
+    let whenError = false;
+    for (let i = 0; i < array.length; i++) {
+        if (array[i].param === 'when') {
+            whenError = true;
+            break;
+        }
+    }
+    if (whenError) {
+        await body('time', 'Time is invalid. Example: X:XXam - Y:YYpm').custom(value => {
+            const times = value.split('-');
+            if (!times.length === 1) throw new Error();
+            let startHour = parseInt(times[0].split(':')[0]);
+            let endHour = parseInt(times[1].split(':')[0]);
+            if (!(startHour && endHour)) throw new Error();
+            const startMeridian = times[0].split('').splice(4, 2).join('');
+            const endMeridian = times[1].trim().split('').splice(4, 2).join('');
+            if (!(startMeridian && endMeridian)) throw new Error();
+            return true;
+        }).run(req);
+    } else {
+        await body('time', 'Time is invalid. Example: X:XXam - Y:YYpm').custom(value => {
+            const times = value.split('-');
+            if (!times.length === 1) throw new Error();
+            let startHour = parseInt(times[0].split(':')[0]);
+            let endHour = parseInt(times[1].split(':')[0]);
+            if (!(startHour && endHour)) throw new Error();
+            const startMeridian = times[0].split('').splice(4, 2).join('');
+            const endMeridian = times[1].trim().split('').splice(4, 2).join('');
+            if (!(startMeridian && endMeridian)) throw new Error();
+            return true;
+        }).bail().customSanitizer((value, { req }) => {
+            const times = value.split('-');
+            let startHour = parseInt(times[0].split(':')[0]);
+            let endHour = parseInt(times[1].split(':')[0]); 
+            const startMeridian = times[0].split('').splice(4, 2).join('');
+            const endMeridian = times[1].trim().split('').splice(4, 2).join('');
+            if (startHour === 12 && startMeridian === 'am') startHour = 0;
+            else if (startHour > 12) startHour += 12;
+            if (endHour === 12 && endHour === 'am') endHour = 0;
+            else if (endHour > 12) endHour += 12;
+            let from = startHour < 10 ? `0${startHour}:00:00`: `${startHour}:00:00`;
+            let to = endHour < 10 ? `0${endHour}:00:00`: `${endHour}:00:00`;
+            req.body.from = from;
+            req.body.to = to;
+            return value;
+        }).custom(async (value, { req }) => {
+            const from = req.body.from;
+            const to = req.body.to;
+            const when = req.body.when;
+            const events = await getEvent(when, from, to);
+            if (events.length > 0) throw new Error('There is already an event within those times.');
+            return true;
+        }).run(req);
+    }
+    errors = validationResult(req);
+    console.log(errors.array());
+    if (!errors.isEmpty()) {
+        // return error message
+        let errorQuery = '?';
+        errors.array().forEach(current => {
+            errorQuery += `${current.param}=${encodeURIComponent(current.msg)}&`;
+        });
+        errorQuery = errorQuery.substring(0, errorQuery.length - 1);
+        return res.redirect('/' + errorQuery);
+    }
+    const when = req.body.when;
+    const time = req.body.time;
+    const location = req.body.location;
     const title = req.body.title;
-    const location = req.body.location; 
-    const date = req.body.when.split(' ');
-    let when = FULL_MONTHS[date[0]];
-    when += `-${parseInt(date[1])}`;
-    when = `${parseInt(date[2])}-${when}`;
-    const times = req.body.time.split('-');
-    let startHour = parseInt(times[0].split(':')[0]);
-    let endHour = parseInt(times[1].split(':')[0]);
-    const startMeridian = times[0].split('').splice(4, 2).join('');
-    const endMeridian = times[1].trim().split('').splice(4, 2).join('');
-    if (startHour === 12 && startMeridian === 'am') startHour = 0;
-    else if (startHour > 12) startHour += 12;
-    if (endHour === 12 && endHour === 'am') endHour = 0;
-    else if (endHour > 12) endHour += 12;
-    let from = startHour < 10 ? `0${startHour}:00:00`: `${startHour}:00:00`;
-    let to = endHour < 10 ? `0${endHour}:00:00`: `${endHour}:00:00`;
-    
-    mainModel.addEvent(when, from, to, title, location, () => res.redirect('/'));
+    const from = req.body.from;
+    const to = req.body.to;
+    res.redirect('/');
+    //mainModel.addEvent(when, from, to, title, location, () => res.redirect('/'));
 };

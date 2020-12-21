@@ -21,3 +21,18 @@ module.exports.getAllEvents = async (start, end, callback) => {
         console.log(error);
     }
 };
+
+module.exports.getEvent = async (when, from, to) => {
+    try {
+        const query = `
+            SELECT * FROM events 
+            WHERE \`when\` = '${when}' 
+            AND \`from\` = '${from}' 
+            AND \`to\` = '${to}';
+        `;
+        const [rows, fields] = await db.execute(query);
+        return rows;
+    } catch (error) {
+        console.log(error);
+    }
+};
