@@ -206,3 +206,16 @@
 .add__event--submit {
     display: block;
 }
+
+.add__event--input-negative {
+    border: 1px solid red;
+}
+
+.calendar__form--error {
+    margin: 0.5rem auto;
+    padding: 0.5rem 0;
+    width: 50%;
+    text-align: center;
+    background-color: #f8d7da;
+    color: #8f2d44;
+}

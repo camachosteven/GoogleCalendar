@@ -1,27 +1,11 @@
-const { body,validationResult } = require('express-validator');
+const { body, validationResult } = require('express-validator');
 const { DAYS, DAYS_HEADER, DAYS_IN_WEEK, MONTHS_HEADER, FULL_MONTHS } = require('../../util/variables');
 const { getHeader } = require('../../util/mainController');
 const mainModel = require('../Models/mainModel');
 
-/** get this week's calendar and events
- * - get today's date
- * - get year, date, month, year
- * - for loop is create the entire week 
- *      for each day, 
- *          > create date object, with day name, header, and date
- *          > for today, set current to true
- *          > push into currentWeek array
- *          > check to see if that day's month is different from today's month
- *              - get that day's month
- *              - if that day is after today, then add that month before today's month
- *              - if that day is before today, then add that month after today's month
- * - if block after the for loop is used to determine the year(s) in header
- *      if the header has multiple months, add the current year and the next year
- *      if the header has a single month, add the current year
- */
 module.exports.getCurrentCalendar = (req, res) => {
     const context = {};
-    const today = new Date(Date.now());
+    const today = new Date(2020, 11, 7);
     const DOW = today.getDay();
     const date = today.getDate();
     const month = today.getMonth();
@@ -30,17 +14,24 @@ module.exports.getCurrentCalendar = (req, res) => {
     const currentWeek = [];
     let dateHeader = `${MONTHS_HEADER[month]}`;
     let startDay, endDay;
+
+    /** for loop
+     * - this loop creates the entire week array
+     * 1. calculate how far each day is to today
+     * 2. create date based on that difference for that day's info
+     * 3. store the first and last days of the week for database query later on
+     * 4. create header with month(s) for nav bar
+     * 5. create individual date object with day, header, actual date, and events array
+     * 6. push into current week array
+     */
     for (let i = 0; i < DAYS_IN_WEEK; i++) {
         const diff = DOW - i;
         const next = new Date(year, month, date - diff);
-        if (i === 0) {
-            startDay = `${next.getFullYear()}-${next.getMonth() + 1}-${next.getDate()}`;
-            if (month !== next.getMonth()) [dateHeader, nextYear] = getHeader(diff, next, dateHeader, year);
-        }
-        else if (i === DAYS_IN_WEEK - 1) {
-            endDay = `${next.getFullYear()}-${next.getMonth() + 1}-${next.getDate()}`;
-            if (month !== next.getMonth()) [dateHeader, nextYear] = getHeader(diff, next, dateHeader, year);
-        }
+
+        if (month !== next.getMonth()) [dateHeader, nextYear] = getHeader(diff, next, dateHeader, year);
+        if (i === 0) startDay = `${next.getFullYear()}-${next.getMonth() + 1}-${next.getDate()}`;
+        else if (i === DAYS_IN_WEEK - 1) endDay = `${next.getFullYear()}-${next.getMonth() + 1}-${next.getDate()}`;
+        
         const dateObject = {
             day: DAYS[i],
             header: DAYS_HEADER[i],
@@ -50,7 +41,14 @@ module.exports.getCurrentCalendar = (req, res) => {
         if (next.getDate() === date) dateObject.current = true;
         
         currentWeek.push(dateObject);
-    }
+    } // end for
+
+    /** if block
+     * - this if else block finishes dateHeader by adding the year(s)
+     * 1. if the dateHeader includes January, separate the months
+     * 1b. add the smaller of the years to December, add larger to January
+     * 2. else, simply add year
+     */
     if (dateHeader.includes('Jan')) {
         dateHeader = dateHeader.split('-');
         if (year < nextYear) {
@@ -63,36 +61,31 @@ module.exports.getCurrentCalendar = (req, res) => {
         dateHeader = dateHeader.join('-');
     } else {
         dateHeader += ` ${year}`;
-    }
+    } // end if 
+
+    context['dateHeader'] = dateHeader;
+
+    /** get all events and render page
+     * - this method gets all events from db, adds to each day of week, renders page
+     * 1. if array is not empty and event date matches that day's date, add to events array
+     * 2. else, go to next day
+     * 3. add to context, render page
+     */
     mainModel.getAllEvents(startDay, endDay, results => {
         currentWeek.forEach(day => {
             let more = true;
             do {
-                if (results[0] && results[0].when.getDate() === day.date) day.events.push(results.shift());
+                if (results.length !== 0 && results[0].when.getDate() === day.date) day.events.push(results.shift());
                 else more = false; 
             } while (more);
         });
         context['currentWeek'] = currentWeek;
-        context['dateHeader'] = dateHeader;
         res.render('index.ejs', context);
     });
 }
-// '7:00pm - 8:30pm'
-module.exports.addEvent = async (req, res) => {
-    await body('when').trim().custom(value => {
-        const date = value.split(' ');
-        const month = FULL_MONTHS[date[0]];
-        const day = parseInt(date[1]);
-        const year = parseInt(date[2]);
-        if (!month) return new Error('Month is not valid. Please enter entire month capitalized (December).');
-        if (!year) return new Error('Year is not valid. Enter a valid year.');
-        if (!day && day <= new Date(year, month, 0).getDate()) return new Error('Day is not valid. Please enter a date within month of event.');
-        return true;
-    }).bail().customSanitizer(value => {
-        const date = value.split(' ');
-        return `${parseInt(date[2])}-${FULL_MONTHS[date[0]]}-${parseInt(date[1])}`;
-    }).run(req);
 
+module.exports.addEvent = async (req, res) => {
+    // this block checks if the 'when' input has a validation error
     var errors = validationResult(req);
     const array = errors.array();
     let whenError = false;
@@ -102,30 +95,15 @@ module.exports.addEvent = async (req, res) => {
             break;
         }
     }
-    if (whenError) {
-        await body('time', 'Time is invalid. Example: X:XXam - Y:YYpm').custom(value => {
-            const times = value.split('-');
-            if (!times.length === 1) throw new Error();
-            let startHour = parseInt(times[0].split(':')[0]);
-            let endHour = parseInt(times[1].split(':')[0]);
-            if (!(startHour && endHour)) throw new Error();
-            const startMeridian = times[0].split('').splice(4, 2).join('');
-            const endMeridian = times[1].trim().split('').splice(4, 2).join('');
-            if (!(startMeridian && endMeridian)) throw new Error();
-            return true;
-        }).run(req);
-    } else {
-        await body('time', 'Time is invalid. Example: X:XXam - Y:YYpm').custom(value => {
-            const times = value.split('-');
-            if (!times.length === 1) throw new Error();
-            let startHour = parseInt(times[0].split(':')[0]);
-            let endHour = parseInt(times[1].split(':')[0]);
-            if (!(startHour && endHour)) throw new Error();
-            const startMeridian = times[0].split('').splice(4, 2).join('');
-            const endMeridian = times[1].trim().split('').splice(4, 2).join('');
-            if (!(startMeridian && endMeridian)) throw new Error();
-            return true;
-        }).bail().customSanitizer((value, { req }) => {
+
+    /** if block
+     * - this block makes additional validations if when has no errors. 
+     * 1. if when has no error, convert into start and end data for db
+     * 2. after sanitization, check if there is an event for that same time
+     * 3. 
+     */
+    if (!whenError) {
+        await body('time', 'Time is invalid. Example: X:XXam - Y:YYpm').customSanitizer((value, { req }) => {
             const times = value.split('-');
             let startHour = parseInt(times[0].split(':')[0]);
             let endHour = parseInt(times[1].split(':')[0]); 
@@ -144,24 +122,29 @@ module.exports.addEvent = async (req, res) => {
             const from = req.body.from;
             const to = req.body.to;
             const when = req.body.when;
-            const events = await getEvent(when, from, to);
+            const events = await mainModel.getEvent(when, from, to);
             if (events.length > 0) throw new Error('There is already an event within those times.');
             return true;
         }).run(req);
     }
+
+    /**
+     * - this block checks all errors on the inputs
+     * 1. if error array is not empty, encode each error into a querystring
+     * 2. add the date for which the input was entered
+     */
     errors = validationResult(req);
-    console.log(errors.array());
     if (!errors.isEmpty()) {
         // return error message
         let errorQuery = '?';
         errors.array().forEach(current => {
             errorQuery += `${current.param}=${encodeURIComponent(current.msg)}&`;
         });
-        errorQuery = errorQuery.substring(0, errorQuery.length - 1);
-        return res.redirect('/' + errorQuery);
+        errorQuery += `formDate=${encodeURIComponent(req.body.formDate)}`;
+        return res.redirect('/' + errorQuery); 
     }
+
     const when = req.body.when;
-    const time = req.body.time;
     const location = req.body.location;
     const title = req.body.title;
     const from = req.body.from;
