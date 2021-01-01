@@ -30,6 +30,6 @@ app.set('view engine', 'ejs');
 const mainRoutes = require('./routes/main');
 app.use(mainRoutes);
 
-const PORT = process.env.PORT || 3000;
-const HOST = process.env.HOST || '127.0.0.1';
+const PORT = process.env.PORT;
+const HOST = process.env.HOST;
 app.listen(PORT, HOST);
