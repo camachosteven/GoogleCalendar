@@ -6,7 +6,7 @@ const { end } = require('../../util/database');
 
 module.exports.getCurrentCalendar = (req, res) => {
     const context = {};
-    const today = new Date(2020, 11, 7);
+    const today = new Date(Date.now());
     const DOW = today.getDay();
     const date = today.getDate();
     const month = today.getMonth();
