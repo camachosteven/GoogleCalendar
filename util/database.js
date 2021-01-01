@@ -18,7 +18,6 @@ table.then(([rows, fields]) => { if (rows.length === 0) throw new Error('No tabl
             \`to\` TIME NOT NULL,
             PRIMARY KEY (\`when\`, \`from\`, \`to\`));
         `);
-    }).catch(error => {
     });
 
 module.exports = db;
