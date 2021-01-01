@@ -5,7 +5,7 @@ const mainModel = require('../Models/mainModel');
 
 module.exports.getCurrentCalendar = (req, res) => {
     const context = {};
-    const today = new Date(2020, 11, 0);
+    const today = new Date(Date.now());
     const DOW = today.getDay();
     const date = today.getDate();
     const month = today.getMonth();
