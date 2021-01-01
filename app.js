@@ -2,11 +2,10 @@ const express = require('express');
 const path = require('path');
 const bodyParser = require('body-parser');
 const env = require('dotenv');
-
-env.config();
 const app = express();
 
-if (process.env.NODE_ENV === 'local') {
+if (!process.env.HEROKU_PRODUCTION) {
+    env.config();
     const livereload = require('livereload');
     const connectLiveReload = require('connect-livereload');
     app.use(connectLiveReload());

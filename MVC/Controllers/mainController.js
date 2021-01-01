@@ -2,6 +2,7 @@ const { body, validationResult } = require('express-validator');
 const { DAYS, DAYS_HEADER, DAYS_IN_WEEK, MONTHS_HEADER, FULL_MONTHS } = require('../../util/variables');
 const { getHeader } = require('../../util/mainController');
 const mainModel = require('../Models/mainModel');
+const { end } = require('../../util/database');
 
 module.exports.getCurrentCalendar = (req, res) => {
     const context = {};
@@ -107,12 +108,16 @@ module.exports.addEvent = async (req, res) => {
             const times = value.split('-');
             let startHour = parseInt(times[0].split(':')[0]);
             let endHour = parseInt(times[1].split(':')[0]); 
-            const startMeridian = times[0].split('').splice(4, 2).join('');
-            const endMeridian = times[1].trim().split('').splice(4, 2).join('');
+            let startMeridian, endMeridian;
+            if (startHour >= 10) startMeridian = times[0].split('').splice(5, 2).join('');
+            else startMeridian = times[0].split('').splice(4, 2).join('');
+            if (endHour >= 10) endMeridian = times[1].trim().split('').splice(5, 2).join('');
+            else endMeridian = times[1].trim().split('').splice(4, 2).join('');
+            console.log(startMeridian, endMeridian);
             if (startHour === 12 && startMeridian === 'am') startHour = 0;
-            else if (startHour > 12) startHour += 12;
-            if (endHour === 12 && endHour === 'am') endHour = 0;
-            else if (endHour > 12) endHour += 12;
+            else if (startHour != 12 && startMeridian === 'pm') startHour += 12;
+            if (endHour === 12 && endMeridian === 'am') endHour = 0;
+            else if (endHour != 12 && endMeridian === 'pm') endHour += 12;
             let from = startHour < 10 ? `0${startHour}:00:00`: `${startHour}:00:00`;
             let to = endHour < 10 ? `0${endHour}:00:00`: `${endHour}:00:00`;
             req.body.from = from;
@@ -149,6 +154,5 @@ module.exports.addEvent = async (req, res) => {
     const title = req.body.title;
     const from = req.body.from;
     const to = req.body.to;
-    res.redirect('/');
-    //mainModel.addEvent(when, from, to, title, location, () => res.redirect('/'));
+    mainModel.addEvent(when, from, to, title, location, () => res.redirect('/'));
 };
