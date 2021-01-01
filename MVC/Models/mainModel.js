@@ -1,5 +1,7 @@
 const db = require('../../util/database');
 
+
+// this method takes in all of the input from view and inserts it into db table
 module.exports.addEvent = async (when, from, to, title, location, callback) => {
     const query = `
         INSERT INTO events (\`title\`, \`when\`, \`from\`, \`to\`, \`location\`) 
@@ -9,6 +11,7 @@ module.exports.addEvent = async (when, from, to, title, location, callback) => {
     callback();
 }
 
+// this method gets all methods that are within the start and end dates
 module.exports.getAllEvents = async (start, end, callback) => {
     try {
         const query = `
@@ -23,6 +26,7 @@ module.exports.getAllEvents = async (start, end, callback) => {
     }
 };
 
+// this method gets a specific event, used to check if there is an event occupying a specific date and time
 module.exports.getEvent = async (when, from, to) => {
     try {
         const query = `

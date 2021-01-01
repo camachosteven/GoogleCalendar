@@ -5,7 +5,7 @@ const mainModel = require('../Models/mainModel');
 
 module.exports.getCurrentCalendar = (req, res) => {
     const context = {};
-    const today = new Date(Date.now());
+    const today = new Date(2020, 11, 0);
     const DOW = today.getDay();
     const date = today.getDate();
     const month = today.getMonth();
@@ -108,29 +108,45 @@ module.exports.addEvent = async (req, res) => {
      */
     if (!whenError) {
         await body('time', 'Time is invalid. Example: X:XXam - Y:YYpm').customSanitizer((value, { req }) => {
+            // parse the time input to get hour Ex: from 9:00pm to 9
             const times = value.split('-');
             let startHour = parseInt(times[0].split(':')[0]);
             let endHour = parseInt(times[1].split(':')[0]); 
+
+            // if hour is 10, 11, or 12, hour is double digits
+            // that means meridian starts at index 5
+            // otherwise, starts at 4 (see '10:00pm' vs '9:00pm')
             let startMeridian, endMeridian;
             if (startHour >= 10) startMeridian = times[0].split('').splice(5, 2).join('');
             else startMeridian = times[0].split('').splice(4, 2).join('');
             if (endHour >= 10) endMeridian = times[1].trim().split('').splice(5, 2).join('');
             else endMeridian = times[1].trim().split('').splice(4, 2).join('');
-            console.log(startMeridian, endMeridian);
+
+            // convert all hours into 'military'
             if (startHour === 12 && startMeridian === 'am') startHour = 0;
             else if (startHour != 12 && startMeridian === 'pm') startHour += 12;
             if (endHour === 12 && endMeridian === 'am') endHour = 0;
             else if (endHour != 12 && endMeridian === 'pm') endHour += 12;
+
+            // construct time data type for db
             let from = startHour < 10 ? `0${startHour}:00:00`: `${startHour}:00:00`;
             let to = endHour < 10 ? `0${endHour}:00:00`: `${endHour}:00:00`;
+
+            // add to req.body
             req.body.from = from;
             req.body.to = to;
+
             return value;
         }).custom(async (value, { req }) => {
             const from = req.body.from;
             const to = req.body.to;
             const when = req.body.when;
+
+            // check to see if there's an event when the same date and time
+            // if so, throw new error saying that there's already an event within that 
+            // time frame
             const events = await mainModel.getEvent(when, from, to);
+
             if (events.length > 0) throw new Error('There is already an event within those times.');
             return true;
         }).run(req);
@@ -145,10 +161,15 @@ module.exports.addEvent = async (req, res) => {
     if (!errors.isEmpty()) {
         // return error message
         let errorQuery = '?';
+
+        // for each error in form
+        // add param title, encoded msg specifically for URL
+        // lastly add formDate to determine where the form was in error
         errors.array().forEach(current => {
             errorQuery += `${current.param}=${encodeURIComponent(current.msg)}&`;
         });
         errorQuery += `formDate=${encodeURIComponent(req.body.formDate)}`;
+
         return res.redirect('/' + errorQuery); 
     }
 
@@ -157,5 +178,6 @@ module.exports.addEvent = async (req, res) => {
     const title = req.body.title;
     const from = req.body.from;
     const to = req.body.to;
+
     mainModel.addEvent(when, from, to, title, location, () => res.redirect('/'));
 };

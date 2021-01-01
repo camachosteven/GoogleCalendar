@@ -1,12 +1,14 @@
 <% currentWeek.forEach(current => { %>
     <div class="calendar__day" id="<%= current.day %>">
         <% for (let i = 0; i < 24; i++) { %>
+            <!-- determine meridian based off i -->
             <% if (i < 12) { %> 
             <% var meridian = 'am'; %>
             <% } else { %>
             <% var meridian = 'pm'; %>
             <% } %>
 
+            <!-- determine hour of day (non-military) -->
             <% if (i === 0) { %>
             <% var hour = 12; %>
             <% } else if (i > 12) { %>
@@ -14,7 +16,12 @@
             <% } else { %>
             <% var hour = i; %>
             <% } %>
-
+            
+            <!-- 
+                if day has events, check the events startHour,
+                if hour matches i, it belongs there and you must enter event with info
+                if hour doesn't match, add an empty div
+            -->
             <% if (current.events.length !== 0) { %>
                 <% let from = parseInt(current.events[0].from.split(':')[0]); %>
                 <% let to = hour + 1; %>

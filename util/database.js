@@ -7,6 +7,11 @@ const db = mysql.createPool({
     database: process.env.DATABASE
 }).promise();
 
+/**
+ * this section is used to determine if a table already exists in the db
+ * if so, do nothing
+ * if no table is found, create entire table details with the columns and their attributes
+ */
 const table = db.execute('SHOW TABLES LIKE "events";');
 table.then(([rows, fields]) => { if (rows.length === 0) throw new Error('No table.') })
     .catch((error) => {
