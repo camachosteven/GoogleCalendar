@@ -81,7 +81,7 @@ module.exports.getCurrentCalendar = (req, res) => {
             } while (more);
         });
         context['currentWeek'] = currentWeek;
-        res.render('index.ejs', context);
+        res.render('index', context);
     });
 }
 

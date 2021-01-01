@@ -23,7 +23,7 @@ if (!process.env.HEROKU_PRODUCTION) {
 app.use(bodyParser.urlencoded({ extended: false }));
 app.use(express.static(path.join(__dirname, 'MVC', 'views', 'static')));
 
-app.set('views', 'MVC/views');
+app.set('views', 'MVC/Views');
 app.set('view engine', 'ejs');
 
 // Routes
