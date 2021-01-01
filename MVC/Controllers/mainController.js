@@ -2,7 +2,6 @@ const { body, validationResult } = require('express-validator');
 const { DAYS, DAYS_HEADER, DAYS_IN_WEEK, MONTHS_HEADER, FULL_MONTHS } = require('../../util/variables');
 const { getHeader } = require('../../util/mainController');
 const mainModel = require('../Models/mainModel');
-const { end } = require('../../util/database');
 
 module.exports.getCurrentCalendar = (req, res) => {
     const context = {};
