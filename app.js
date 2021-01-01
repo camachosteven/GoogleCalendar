@@ -24,7 +24,7 @@ if (!process.env.HEROKU_PRODUCTION) {
     directory = process.cwd();
 }
 app.use(bodyParser.urlencoded({ extended: false }));
-app.use(express.static(path.join(directory, 'MVC', 'views', 'static')));
+app.use(express.static(path.join(directory, 'MVC', 'Views', 'static')));
 
 app.set('views', 'MVC/Views');
 app.set('view engine', 'ejs');
