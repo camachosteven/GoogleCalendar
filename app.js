@@ -5,6 +5,7 @@ const env = require('dotenv');
 const app = express();
 
 // added this to config vars
+let directory;
 if (!process.env.HEROKU_PRODUCTION) {
     env.config();
     const livereload = require('livereload');
@@ -18,10 +19,12 @@ if (!process.env.HEROKU_PRODUCTION) {
             reloadServer.refresh('/');
         }, 100);
     });
+    directory = __dirname;
+} else {
+    directory = process.cwd();
 }
-
 app.use(bodyParser.urlencoded({ extended: false }));
-app.use(express.static(path.join(__dirname, 'MVC', 'views', 'static')));
+app.use(express.static(path.join(directory, 'MVC', 'views', 'static')));
 
 app.set('views', 'MVC/Views');
 app.set('view engine', 'ejs');

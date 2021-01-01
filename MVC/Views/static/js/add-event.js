@@ -73,16 +73,16 @@ calendarDays.forEach((current, element) => {
             const formContent = `
                 <input name="title" class="add__event--input add__event--title ${errors.has('title') ? 'add__event--input-negative' : ''}" type="text" placeholder="Event Title">
                 <div>
-                    <img src="img/calendar.svg" width="16px" height="16px">
+                    <img src="/img/calendar.svg" width="16px" height="16px">
                     <input name="when" class="add__event--input add__event--date ${errors.has('when') ? 'add__event--input-negative' : ''}" type="text" value="${date}">
 
                 </div>
                 <div>
-                    <img src="img/clock.svg" width="16px" height="16px">
+                    <img src="/img/clock.svg" width="16px" height="16px">
                     <input name="time" class="add__event--input add__event--time ${errors.has('time') ? 'add__event--input-negative' : ''}" type="text" value="${beginningHour} - ${endingHour}" placeholder="Ex: 7:00pm - 8:00pm">
                 </div>
                 <div>
-                    <img src="img/location.png" width="16px" height="16px">
+                    <img src="/img/location.png" width="16px" height="16px">
                     <input name="location" class="add__event--input add__event--location ${errors.has('location') ? 'add__event--input-negative' : ''}" type="text" placeholder="Miami, FL">
                 </div>
                 <input type="hidden" name="formDate" value="${month} ${currentDate} ${year} ${hour}">
