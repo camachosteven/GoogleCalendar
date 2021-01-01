@@ -4,6 +4,7 @@ const bodyParser = require('body-parser');
 const env = require('dotenv');
 const app = express();
 
+// added this to config vars
 if (!process.env.HEROKU_PRODUCTION) {
     env.config();
     const livereload = require('livereload');
