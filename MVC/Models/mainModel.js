@@ -2,7 +2,8 @@ const db = require('../../util/database');
 
 module.exports.addEvent = async (when, from, to, title, location, callback) => {
     const query = `
-        INSERT INTO events VALUES ('${when}', '${title}', '${location}', '${from}', '${to}');
+        INSERT INTO events (\`title\`, \`when\`, \`from\`, \`to\`, \`location\`) 
+        VALUES ('${title}', '${when}', '${from}', '${to}', '${location}');
     `;
     await db.execute(query);
     callback();
