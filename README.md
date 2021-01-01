@@ -1,0 +1,5 @@
+This project I have created as a solution to part of a challenge that was presented to me from an internship. I used this project to begin my practice in backend development along with strengthening my vanilla Javascript skills. 
+
+I learned about the backend concepts that we must be aware about, regardless of the tech stack you use (Java, Python, PHP, etc). I also saw the importance of using a frontend library or framework to facilitate UI development and avoid reinventing the wheel. 
+
+This is merely a prototype of this project, as I want to continue adding to it by implementing new logic in the backend like user registration, authorization, authentication, security, etc. I want to convert it into an API where I can simply pull data and recreate the UI using React. Now that I know React will make creating the UI much, much easier, I want to learn more Design so that I can at least have an idea how to plan out an interface. 
