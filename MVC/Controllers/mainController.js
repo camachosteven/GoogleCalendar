@@ -28,9 +28,13 @@ module.exports.getCurrentCalendar = (req, res) => {
         const diff = DOW - i;
         const next = new Date(year, month, date - diff);
 
-        if (month !== next.getMonth()) [dateHeader, nextYear] = getHeader(diff, next, dateHeader, year);
-        if (i === 0) startDay = `${next.getFullYear()}-${next.getMonth() + 1}-${next.getDate()}`;
-        else if (i === DAYS_IN_WEEK - 1) endDay = `${next.getFullYear()}-${next.getMonth() + 1}-${next.getDate()}`;
+        if (i === 0) {
+            startDay = `${next.getFullYear()}-${next.getMonth() + 1}-${next.getDate()}`;
+            if (month !== next.getMonth()) [dateHeader, nextYear] = getHeader(diff, next, dateHeader, year);
+        } else if (i === DAYS_IN_WEEK - 1) {
+            endDay = `${next.getFullYear()}-${next.getMonth() + 1}-${next.getDate()}`;
+            if (month !== next.getMonth()) [dateHeader, nextYear] = getHeader(diff, next, dateHeader, year);
+        }
         
         const dateObject = {
             day: DAYS[i],
